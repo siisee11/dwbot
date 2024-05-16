@@ -1,0 +1,12 @@
+{
+  "name": "slackbot",
+  "private": true,
+  "dependencies": {
+    "@slack/web-api": "7.0.1",
+    "openai": "4.26.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.16",
+    "typescript": "5.3.3"
+  }
+}

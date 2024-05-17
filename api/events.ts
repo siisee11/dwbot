@@ -1,41 +1,44 @@
-import crypto from 'crypto'
-import { sendGPTResponse } from './_chat'
+import crypto from "crypto";
+import { VercelRequest, VercelResponse } from "@vercel/node";
 
 export const config = {
   maxDuration: 30,
-}
+};
 
-async function isValidSlackRequest(request: Request, body: any) {
-  const signingSecret = process.env.SLACK_SIGNING_SECRET!
-  const timestamp = request.headers.get('X-Slack-Request-Timestamp')!
-  const slackSignature = request.headers.get('X-Slack-Signature')!
-  const base = `v0:${timestamp}:${JSON.stringify(body)}`
+async function isValidSlackRequest(request: VercelRequest, body: any) {
+  const signingSecret = process.env.SLACK_SIGNING_SECRET!;
+  const timestamp = request.headers["X-Slack-Request-Timestamp"];
+  const slackSignature = request.headers["X-Slack-Signature"];
+  const base = `v0:${timestamp}:${JSON.stringify(body)}`;
   const hmac = crypto
-    .createHmac('sha256', signingSecret)
+    .createHmac("sha256", signingSecret)
     .update(base)
-    .digest('hex')
-  const computedSignature = `v0=${hmac}`
-  return computedSignature === slackSignature
+    .digest("hex");
+  const computedSignature = `v0=${hmac}`;
+  return computedSignature === slackSignature;
 }
 
-export async function POST(request: Request) {
-  const rawBody = await request.text()
-  const body = JSON.parse(rawBody)
-  const requestType = body.type
+export default async function (
+  request: VercelRequest,
+  response: VercelResponse
+) {
+  console.log("Received request", request.body, request.headers);
+  const body = request.body;
+  const requestType = body.type;
 
-  if (requestType === 'url_verification') {
-    return new Response(body.challenge, { status: 200 })
+  if (requestType === "url_verification") {
+    return response.status(200).send(body.challenge);
   }
 
   if (await isValidSlackRequest(request, body)) {
-    if (requestType === 'event_callback') {
-      const eventType = body.event.type
-      if (eventType === 'app_mention') {
-        await sendGPTResponse(body.event)
-        return new Response('Success!', { status: 200 })
+    if (requestType === "event_callback") {
+      const eventType = body.event.type;
+      if (eventType === "app_mention") {
+        console.log("Received app mention", body);
+        return response.status(200).send("Success!");
       }
     }
   }
 
-  return new Response('OK', { status: 200 })
+  return response.status(200).send("Success!");
 }

@@ -73,3 +73,6 @@ npx localtunnel --port 3000
 ```
 
 Make sure to modify the [subscription URL](./README.md/#enable-slack-events) to the `localtunnel` URL.
+
+See https://vercel.com/docs/functions/runtimes/node-js
+If you want to use express, See https://vercel.com/guides/using-express-with-vercel

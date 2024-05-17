@@ -3,9 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
 
-export const config = {
-  maxDuration: 30,
-};
+export const maxDuration = 30;
 
 const supabaseUrl = "https://opljpbyvufnvjisogaai.supabase.co";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

@@ -111,7 +111,7 @@ const getDailyChecks = async ({
   if (error) {
     throw new Error("Error fetching daily checks");
   }
-  return dailyChecks;
+  return dailyChecks as DailyCheck[];
 };
 
 // Function to get or create a Slack user

@@ -3,6 +3,8 @@
   "private": true,
   "dependencies": {
     "@slack/web-api": "7.0.4",
+    "@supabase/supabase-js": "^2.43.2",
+    "date-fns": "^3.6.0",
     "openai": "4.47.1"
   },
   "devDependencies": {

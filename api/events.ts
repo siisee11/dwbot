@@ -7,7 +7,6 @@ export const maxDuration = 30;
 
 const supabaseUrl = "https://opljpbyvufnvjisogaai.supabase.co";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 function makeDailyCheckId(): string {
   return `dcheck_${makeId(24)}`;
@@ -98,6 +97,7 @@ const getDailyChecks = async ({
   start: Date;
   end: Date;
 }): Promise<DailyCheck[]> => {
+  const supabase = createClient(supabaseUrl, supabaseKey);
   const { data: dailyChecks, error } = await supabase
     .from("daily_checks")
     .select("*")
@@ -114,6 +114,7 @@ const getDailyChecks = async ({
 
 // Function to get or create a Slack user
 const getOrCreateSlackUser = async (userId: string, userName: string) => {
+  const supabase = createClient(supabaseUrl, supabaseKey);
   let { data: user } = await supabase
     .from("slack_users")
     .select("*")
@@ -145,6 +146,7 @@ const getOrCreateSlackUser = async (userId: string, userName: string) => {
 
 // Function to get or create a challenge
 const getOrCreateChallenge = async (channelId: string, channelName: string) => {
+  const supabase = createClient(supabaseUrl, supabaseKey);
   let { data: challenge } = await supabase
     .from("challenges")
     .select("*")
@@ -174,6 +176,62 @@ const getOrCreateChallenge = async (channelId: string, channelName: string) => {
   }
 };
 
+async function processCommand({
+  slackUser,
+  challenge,
+  response,
+}: {
+  slackUser: any;
+  challenge: any;
+  response: VercelResponse;
+}) {
+  const date = new Date();
+
+  // Check if a daily check already exists for today
+  const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+  const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data: existingChecks, error: checkError } = await supabase
+    .from("daily_checks")
+    .select("*")
+    .eq("challenge_id", challenge.id)
+    .eq("slack_user_id", slackUser.id)
+    .gte("created_at", startOfDay)
+    .lte("created_at", endOfDay);
+
+  if (checkError) {
+    throw new Error("Error fetching daily checks");
+  }
+
+  if (existingChecks!.length === 0) {
+    // Save user command to Supabase if no existing check found
+    const { data, error } = await supabase.from("daily_checks").insert([
+      {
+        id: makeDailyCheckId(),
+        challenge_id: challenge.id,
+        slack_user_id: slackUser.id,
+      },
+    ]);
+
+    if (error) {
+      throw new Error("Error creating daily check");
+    }
+  }
+
+  const dailyChecks = await getDailyChecks({
+    challengeId: challenge.id,
+    userId: slackUser.id,
+    start: startOfMonth(date),
+    end: endOfMonth(date),
+  });
+  // Generate calendar
+  const calendar = await generateCalendar(date, dailyChecks);
+
+  return response
+    .status(200)
+    .json({ response_type: "in_channel", text: calendar });
+}
+
 export default async function (
   request: VercelRequest,
   response: VercelResponse
@@ -194,58 +252,23 @@ export default async function (
     }
 
     if (body.command === "/ㅇㅈ") {
-      const { channel_id, user_id, user_name, channel_name } = body;
-      const date = new Date();
-
-      // Get or create Slack user
+      const { channel_id, user_id, user_name, channel_name, response_url } =
+        body;
       const slackUser = await getOrCreateSlackUser(user_id, user_name);
-
-      // Get or create challenge
       const challenge = await getOrCreateChallenge(channel_id, channel_name);
-
-      // Check if a daily check already exists for today
-      const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-      const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-      const { data: existingChecks, error: checkError } = await supabase
-        .from("daily_checks")
-        .select("*")
-        .eq("challenge_id", challenge.id)
-        .eq("slack_user_id", slackUser.id)
-        .gte("created_at", startOfDay)
-        .lte("created_at", endOfDay);
-
-      if (checkError) {
-        return response.status(500).json({ error: checkError.message });
-      }
-
-      if (existingChecks!.length === 0) {
-        // Save user command to Supabase if no existing check found
-        const { data, error } = await supabase.from("daily_checks").insert([
-          {
-            id: makeDailyCheckId(),
-            challenge_id: challenge.id,
-            slack_user_id: slackUser.id,
-          },
-        ]);
-
-        if (error) {
-          return response.status(500).json({ error: error.message });
-        }
-      }
-
-      const dailyChecks = await getDailyChecks({
-        challengeId: challenge.id,
-        userId: slackUser.id,
-        start: startOfMonth(date),
-        end: endOfMonth(date),
+      return await processCommand({
+        slackUser,
+        challenge,
+        response,
       });
-      // Generate calendar
-      const calendar = await generateCalendar(date, dailyChecks);
-
-      // Respond with calendar text
-      return response
-        .status(200)
-        .json({ response_type: "in_channel", text: calendar });
+      // await fetch(response_url, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     response_type: "in_channel",
+      //     text: calendar,
+      //   }),
+      // });
     }
   }
 

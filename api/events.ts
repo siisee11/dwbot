@@ -1,22 +1,7 @@
-import crypto from "crypto";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { isValidSlackRequest } from "./_validate-slack";
 
 export const maxDuration = 30;
-
-async function isValidSlackRequest(request: VercelRequest, body: any) {
-  // const signingSecret = process.env.SLACK_SIGNING_SECRET!;
-  // const timestamp = request.headers["x-slack-request-timestamp"];
-  // const slackSignature = request.headers["x-slack-signature"];
-  // const base = `v0:${timestamp}:${JSON.stringify(body)}`;
-  // const hmac = crypto
-  //   .createHmac("sha256", signingSecret)
-  //   .update(base)
-  //   .digest("hex");
-  // const computedSignature = `v0=${hmac}`;
-  // console.log("Computed Signature", computedSignature, slackSignature);
-  // return computedSignature === slackSignature;
-  return true;
-}
 
 export default async function (
   request: VercelRequest,
@@ -29,7 +14,22 @@ export default async function (
     return response.status(200).send(body.challenge);
   }
 
-  if (await isValidSlackRequest(request, body)) {
+  const signingSecret = process.env.SLACK_SIGNING_SECRET!;
+  const timestamp = parseInt(
+    request.headers["x-slack-request-timestamp"] as string
+  );
+  const slackSignature = request.headers["x-slack-signature"] as string;
+  const rawBody = JSON.stringify(body);
+  if (
+    isValidSlackRequest({
+      signingSecret,
+      body: rawBody,
+      headers: {
+        "x-slack-signature": slackSignature,
+        "x-slack-request-timestamp": timestamp,
+      },
+    })
+  ) {
     if (requestType === "event_callback") {
       const eventType = body.event.type;
       if (eventType === "app_mention") {
@@ -59,6 +59,8 @@ export default async function (
 
       return response.status(200).send("Processing...");
     }
+  } else {
+    return response.status(200).send("유효하지 않은 요청입니다.");
   }
 
   return response.status(200).send("Success!");

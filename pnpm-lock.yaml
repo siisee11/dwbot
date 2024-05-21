@@ -17,6 +17,9 @@ dependencies:
   openai:
     specifier: 4.47.1
     version: 4.47.1
+  tsscmp:
+    specifier: ^1.0.6
+    version: 1.0.6
 
 devDependencies:
   '@types/express':
@@ -25,6 +28,9 @@ devDependencies:
   '@types/node':
     specifier: 20.12.12
     version: 20.12.12
+  '@types/tsscmp':
+    specifier: ^1.0.2
+    version: 1.0.2
   '@vercel/node':
     specifier: ^3.1.5
     version: 3.1.5
@@ -344,6 +350,10 @@ packages:
       '@types/http-errors': 2.0.4
       '@types/node': 20.12.12
       '@types/send': 0.17.4
+    dev: true
+
+  /@types/tsscmp@1.0.2:
+    resolution: {integrity: sha512-cy7BRSU8GYYgxjcx0Py+8lo5MthuDhlyu076KUcYzVNXL23luYgRHkMG2fIFEc6neckeh/ntP82mw+U4QjZq+g==}
     dev: true
 
   /@types/ws@8.5.10:
@@ -1458,6 +1468,11 @@ packages:
   /ts-toolbelt@6.15.5:
     resolution: {integrity: sha512-FZIXf1ksVyLcfr7M317jbB67XFJhOO1YqdTcuGaq9q5jLUoTikukZ+98TPjKiP2jC5CgmYdWWYs0s2nLSU0/1A==}
     dev: true
+
+  /tsscmp@1.0.6:
+    resolution: {integrity: sha512-LxhtAkPDTkVCMQjt2h6eBVY28KCjikZqZfMcC15YBeNjkgUpdCfBu5HoiOTDu86v6smE8yOjyEktJ8hlbANHQA==}
+    engines: {node: '>=0.6.x'}
+    dev: false
 
   /typescript@4.9.5:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}

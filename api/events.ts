@@ -42,7 +42,7 @@ export default async function (
         body;
 
       // Below endpoint will handle daily checks
-      fetch("http://localhost:3000/api/commands/daily-checks", {
+      fetch(`${process.env.SERVER_BASE_URL!}/api/commands/daily-checks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

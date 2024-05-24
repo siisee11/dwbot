@@ -4,6 +4,7 @@
     "target": "ESNext",
     "module": "CommonJS",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "outDir": "./dist"

@@ -5,6 +5,13 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.3] - 2024-05-25
+
+### Added
+
+- /ㄱㅈ (공지) 커맨드가 추가되었습니다. ADMIN 맴버만 권한이 있습니다.
+- package.json의 버전이 공지에 포함됩니다.
+
 ## [1.0.2] - 2024-05-24
 
 ### Added

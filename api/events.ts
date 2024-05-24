@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { isValidSlackRequest } from "./_validate-slack";
+import packageJson from "../package.json"; // Import the package.json file
 
 export const maxDuration = 30;
 
@@ -10,6 +11,8 @@ export default async function (
   const body = request.body;
   console.log("events::", body);
   const requestType = body.type;
+  const version = packageJson.version;
+  console.log("version::", version);
 
   if (requestType === "url_verification") {
     return response.status(200).send(body.challenge);
@@ -82,6 +85,43 @@ export default async function (
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       return response.status(200).send("ㅇㅈ봇이 달력을 보고있어요...");
+    } else if (body.command === "/ㄱㅈ") {
+      const { text, user_id } = body;
+      if (user_id !== process.env.SLACK_ADMIN_MEMBER_ID) {
+        return response.status(200).send("관리자만 사용할 수 있어요.");
+      }
+
+      const generalChannelId = process.env.SLACK_ANNOUNCEMENT_CHANNEL_ID;
+      const slackToken = process.env.SLACK_BOT_TOKEN!;
+
+      await fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${slackToken}`,
+        },
+        body: JSON.stringify({
+          channel: generalChannelId,
+          blocks: [
+            {
+              type: "header",
+              text: {
+                type: "plain_text",
+                text: `v${version} 공지`,
+              },
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: text,
+              },
+            },
+          ],
+        }),
+      });
+
+      return response.status(200).send("공지가 전송되었어요.");
     }
   } else {
     return response.status(200).send("오류입니다. 제이를 태그해주세요.");

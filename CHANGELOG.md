@@ -5,6 +5,12 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.2] - 2024-05-24
+
+### Added
+
+- 인증샷이 담긴 메세지에 리엑션을 남깁니다. (private 채널이라면 채널의 integration에 bot을 추가해주어야합니다.)
+
 ## [1.0.1] - 2024-05-24
 
 ### Changed

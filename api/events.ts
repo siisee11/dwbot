@@ -8,6 +8,7 @@ export default async function (
   response: VercelResponse
 ) {
   const body = request.body;
+  console.log("events::", body);
   const requestType = body.type;
 
   if (requestType === "url_verification") {
@@ -31,9 +32,32 @@ export default async function (
     })
   ) {
     if (requestType === "event_callback") {
-      const eventType = body.event.type;
-      if (eventType === "app_mention") {
-        return response.status(200).send("Success!");
+      const event = body.event;
+      const eventType = event.type;
+
+      if (eventType === "message" && event.subtype !== "bot_message") {
+        // If the message contains an image, add a heart reaction
+        if (event.files && event.files.length > 0) {
+          const hasImage = event.files.some((file: any) =>
+            file.mimetype.startsWith("image/")
+          );
+          if (hasImage) {
+            const slackToken = process.env.SLACK_BOT_TOKEN!;
+            await fetch("https://slack.com/api/reactions.add", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${slackToken}`,
+              },
+              body: JSON.stringify({
+                name: "heart",
+                channel: event.channel,
+                timestamp: event.ts,
+              }),
+            });
+          }
+        }
+        return response.status(200);
       }
     }
 

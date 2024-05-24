@@ -68,7 +68,7 @@ export function isValidSlackRequest(
     verifySlackRequest(options);
     return true;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
     return true; // TODO: fix signature mismatch
   }
 }

@@ -149,6 +149,12 @@ clone 받은 git repository의 root에서 [Vercel CLI](https://vercel.com/docs/c
 $ ngrok http --domain=<ngrok-free-domain> 3000
 ```
 
+or
+
+```sh
+npx localtunnel --port 3000
+```
+
 [subscription URL](./README.md/#enable-slack-events)을 <ngrok-free-domain>으로 변경해주세요.
 
 ## 참고자료

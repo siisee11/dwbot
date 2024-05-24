@@ -57,11 +57,11 @@ export default async function (
       // Wait 1 second
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      return response.status(200).send("Processing...");
+      return response.status(200).send("ㅇㅈ봇이 달력을 보고있어요...");
     }
   } else {
-    return response.status(200).send("유효하지 않은 요청입니다.");
+    return response.status(200).send("오류입니다. 제이를 태그해주세요.");
   }
 
-  return response.status(200).send("Success!");
+  return response.status(200).send("이상한 커맨드를 입력하셨나요?");
 }

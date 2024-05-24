@@ -34,7 +34,7 @@ function makeId(length: number): string {
 const generateCalendar = async (date: Date, dailyChecks: any[]) => {
   const start = startOfMonth(date);
   const end = endOfMonth(date);
-  const month = date.getMonth();
+  const month = date.getMonth() + 1;
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
@@ -161,7 +161,7 @@ const getOrCreateChallenge = async (channelId: string, channelName: string) => {
   }
 };
 
-async function processCommand({
+async function createDailyCheckCalendar({
   slackUser,
   challenge,
 }: {
@@ -223,7 +223,7 @@ export default async function (
 
   const slackUser = await getOrCreateSlackUser(user_id, user_name);
   const challenge = await getOrCreateChallenge(channel_id, channel_name);
-  const calendar = await processCommand({
+  const calendar = await createDailyCheckCalendar({
     slackUser,
     challenge,
   });

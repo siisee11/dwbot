@@ -107,7 +107,7 @@ export default async function (
               type: "header",
               text: {
                 type: "plain_text",
-                text: `v${version} 공지`,
+                text: `v${version} 업데이트`,
               },
             },
             {

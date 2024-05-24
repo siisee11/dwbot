@@ -1,5 +1,7 @@
 {
   "name": "slackbot",
+  "version": "1.0.1",
+  "author": "siisee111@gmail.com",
   "private": true,
   "dependencies": {
     "@slack/web-api": "7.0.4",

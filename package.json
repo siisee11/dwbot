@@ -1,6 +1,6 @@
 {
   "name": "slackbot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "siisee111@gmail.com",
   "private": true,
   "dependencies": {

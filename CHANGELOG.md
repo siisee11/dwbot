@@ -5,6 +5,12 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.4] - 2024-06-29
+
+### Changed
+
+- KST로 날짜를 계산합니다.
+
 ## [1.0.3] - 2024-05-25
 
 ### Added

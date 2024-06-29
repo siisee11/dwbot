@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-import { endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
+import { addHours, endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
 const supabaseUrl = "https://opljpbyvufnvjisogaai.supabase.co";
@@ -31,16 +31,18 @@ function makeId(length: number): string {
   return result;
 }
 
-const generateCalendar = async (date: Date, dailyChecks: any[]) => {
-  const start = startOfMonth(date);
-  const end = endOfMonth(date);
-  const month = date.getMonth() + 1;
+const generateCalendar = async (kstDate: Date, dailyChecks: DailyCheck[]) => {
+  const start = startOfMonth(kstDate);
+  const end = endOfMonth(kstDate);
+  const month = kstDate.getMonth() + 1;
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
-  const checkDates = dailyChecks.map((check) =>
-    getDate(new Date(check.created_at))
-  );
+  const checkDates = dailyChecks.map((check) => {
+    const date = new Date(check.created_at);
+    const kstDate = addHours(date, 9); // KST is UTC+9
+    return getDate(kstDate);
+  });
 
   let calendar = [month, "일  월  화  수  목  금  토"];
   let week = Array(startDay).fill("---"); // Fill initial spaces for the first week
@@ -169,10 +171,11 @@ async function createDailyCheckCalendar({
   challenge: any;
 }) {
   const date = new Date();
+  const kstDate = addHours(date, 9); // KST is UTC+9
 
   // Check if a daily check already exists for today
-  const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-  const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+  const startOfDay = new Date(kstDate.setHours(0, 0, 0, 0)).toISOString();
+  const endOfDay = new Date(kstDate.setHours(23, 59, 59, 999)).toISOString();
   const supabase = createClient(supabaseUrl, supabaseKey);
   const { data: existingChecks, error: checkError } = await supabase
     .from("daily_checks")
@@ -188,7 +191,7 @@ async function createDailyCheckCalendar({
 
   if (existingChecks!.length === 0) {
     // Save user command to Supabase if no existing check found
-    const { data, error } = await supabase.from("daily_checks").insert([
+    const { error } = await supabase.from("daily_checks").insert([
       {
         id: makeDailyCheckId(),
         challenge_id: challenge.id,
@@ -204,11 +207,11 @@ async function createDailyCheckCalendar({
   const dailyChecks = await getDailyChecks({
     challengeId: challenge.id,
     userId: slackUser.id,
-    start: startOfMonth(date),
-    end: endOfMonth(date),
+    start: startOfMonth(kstDate),
+    end: endOfMonth(kstDate),
   });
   // Generate calendar
-  const calendar = await generateCalendar(date, dailyChecks);
+  const calendar = await generateCalendar(kstDate, dailyChecks);
 
   return calendar;
 }

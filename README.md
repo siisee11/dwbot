@@ -1,6 +1,6 @@
 # ㅇㅈ 봇 (Slack)
 
-매일 매일 챌린지를 트레킹 하는 ㅇㅈ 봇 입니다.
+매일 매일 챌린지를 트레킹 하는 인증봇 입니다.
 
 ## 설치
 
@@ -55,7 +55,7 @@ SERVER_BASE_URL=http://localhost:3000
   - Basic Information --> App Credentials --> Copy **Signing Secret**
   - Add the secret to Vercel's environment variables as `SLACK_SIGNING_SECRET`
 
-#### Admin's Slack Member ID (필요없음)
+#### Admin's Slack Member ID
 
 - Click on your profile picture in Slack and click **Profile**.
 - Click on the three dots in the middle right corner and select **Copy member ID**.
@@ -131,7 +131,7 @@ clone 받은 git repository의 root에서 [Vercel CLI](https://vercel.com/docs/c
 - **Slash Command** 를 누르고 새로운 커맨드를 추가합니다.
 - 커맨드는 '/ㅇㅈ' 으로 적고,
 - Request URL은 위에서와 같이 `https://<your-vercel-app>.vercel.app/api/events` 로 세팅합니다.
-- Short Description은 '인정해드립니다'.
+- Short Description은 '인증해드립니다'.
 - Save를 눌러 저장해주세요.
 
 ## 로컬 개발 환경

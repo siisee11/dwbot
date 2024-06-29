@@ -31,17 +31,18 @@ function makeId(length: number): string {
   return result;
 }
 
-const generateCalendar = async (kstDate: Date, dailyChecks: DailyCheck[]) => {
-  const start = startOfMonth(kstDate);
-  const end = endOfMonth(kstDate);
-  const month = kstDate.getMonth() + 1;
+export const generateCalendar = async (
+  date: Date,
+  dailyChecks: DailyCheck[]
+) => {
+  const start = startOfMonth(date);
+  const end = endOfMonth(date);
+  const month = date.getMonth() + 1;
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
   const checkDates = dailyChecks.map((check) => {
-    const date = new Date(check.created_at);
-    const kstDate = addHours(date, 9); // KST is UTC+9
-    return getDate(kstDate);
+    return getDate(new Date(check.created_at));
   });
 
   let calendar = [month, "일  월  화  수  목  금  토"];
@@ -171,11 +172,10 @@ async function createDailyCheckCalendar({
   challenge: any;
 }) {
   const date = new Date();
-  const kstDate = addHours(date, 9); // KST is UTC+9
 
   // Check if a daily check already exists for today
-  const startOfDay = new Date(kstDate.setHours(0, 0, 0, 0)).toISOString();
-  const endOfDay = new Date(kstDate.setHours(23, 59, 59, 999)).toISOString();
+  const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+  const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
   const supabase = createClient(supabaseUrl, supabaseKey);
   const { data: existingChecks, error: checkError } = await supabase
     .from("daily_checks")
@@ -207,12 +207,11 @@ async function createDailyCheckCalendar({
   const dailyChecks = await getDailyChecks({
     challengeId: challenge.id,
     userId: slackUser.id,
-    start: startOfMonth(kstDate),
-    end: endOfMonth(kstDate),
+    start: startOfMonth(date),
+    end: endOfMonth(date),
   });
   // Generate calendar
-  const calendar = await generateCalendar(kstDate, dailyChecks);
-
+  const calendar = await generateCalendar(date, dailyChecks);
   return calendar;
 }
 

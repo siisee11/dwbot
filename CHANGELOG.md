@@ -9,7 +9,7 @@
 
 ### Changed
 
-- KST로 날짜를 계산합니다.
+- Vercel API server의 region을 icn1 (South Korea)로 설정합니다.
 
 ## [1.0.3] - 2024-05-25
 

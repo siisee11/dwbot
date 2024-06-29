@@ -33,16 +33,20 @@ function makeId(length: number): string {
 
 export const generateCalendar = async (
   date: Date,
-  dailyChecks: DailyCheck[]
+  dailyChecks: DailyCheck[],
+  cutoffHour: number = 0
 ) => {
+  const month = date.getMonth() + 1;
   const start = startOfMonth(date);
   const end = endOfMonth(date);
-  const month = date.getMonth() + 1;
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
   const checkDates = dailyChecks.map((check) => {
-    return getDate(new Date(check.created_at));
+    const realDate = new Date(check.created_at);
+    const cutoffAdjustedDate = new Date(realDate);
+    cutoffAdjustedDate.setHours(0 - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
+    return getDate(cutoffAdjustedDate);
   });
 
   let calendar = [`${month}월`, "일  월  화  수  목  금  토"];
@@ -172,10 +176,16 @@ async function createDailyCheckCalendar({
   challenge: any;
 }) {
   const date = new Date();
+  const cutoffHour: number = challenge.cutoff_hour;
 
-  // Check if a daily check already exists for today
-  const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-  const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+  // Adjust the start and end of the current day based on the cutoff hour
+  const startOfDay = new Date(
+    date.setHours(0 + cutoffHour, 0, 0, 0)
+  ).toISOString();
+  const endOfDay = new Date(
+    date.setHours(23 + cutoffHour, 59, 59, 999)
+  ).toISOString();
+
   const supabase = createClient(supabaseUrl, supabaseKey);
   const { data: existingChecks, error: checkError } = await supabase
     .from("daily_checks")
@@ -204,14 +214,17 @@ async function createDailyCheckCalendar({
     }
   }
 
+  const start = startOfMonth(date);
+  start.setHours(0 + cutoffHour, 0, 0, 0);
+  const end = endOfMonth(date);
+  end.setHours(0 + cutoffHour, 0, 0, 0);
   const dailyChecks = await getDailyChecks({
     challengeId: challenge.id,
     userId: slackUser.id,
-    start: startOfMonth(date),
-    end: endOfMonth(date),
+    start,
+    end,
   });
-  // Generate calendar
-  const calendar = await generateCalendar(date, dailyChecks);
+  const calendar = await generateCalendar(date, dailyChecks, cutoffHour);
   return calendar;
 }
 

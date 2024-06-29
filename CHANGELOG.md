@@ -5,6 +5,14 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.5] - 2024-06-29
+
+### Added
+
+- challenges table에 cutoff_hour가 추가되었습니다. 하루가 끝나는 시간을 설정할 수 있습니다.
+- 예를들어 cutoff_hour가 4라면 4AM까지의 ㅇㅈ이 전날 ㅇㅈ으로 취급됩니다.
+- cutoff_hour가 -4라면 8PM부터는 내일로 취급됩니다.
+
 ## [1.0.4] - 2024-06-29
 
 ### Changed

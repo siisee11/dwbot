@@ -45,7 +45,7 @@ export const generateCalendar = async (
     return getDate(new Date(check.created_at));
   });
 
-  let calendar = [month, "일  월  화  수  목  금  토"];
+  let calendar = [`${month}월`, "일  월  화  수  목  금  토"];
   let week = Array(startDay).fill("---"); // Fill initial spaces for the first week
 
   for (let i = 1; i <= daysInMonth; i++) {

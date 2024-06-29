@@ -3,6 +3,9 @@
   "version": "1.0.5",
   "author": "siisee111@gmail.com",
   "private": true,
+  "scripts": {
+    "test": "TZ=KST jest"
+  },
   "dependencies": {
     "@slack/web-api": "7.0.4",
     "@supabase/supabase-js": "^2.43.2",
@@ -11,10 +14,16 @@
     "tsscmp": "^1.0.6"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
     "@types/node": "20.12.12",
     "@types/tsscmp": "^1.0.2",
     "@vercel/node": "^3.1.5",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
     "typescript": "5.4.5"
   }
 }

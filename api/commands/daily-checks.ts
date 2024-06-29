@@ -1,35 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 
-import { addHours, endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
+import { endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  makeSlackUserId,
+  makeChallangeId,
+  makeDailyCheckId,
+} from "../utils/id.utils";
 
 const supabaseUrl = "https://opljpbyvufnvjisogaai.supabase.co";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-function makeDailyCheckId(): string {
-  return `dcheck_${makeId(24)}`;
-}
-
-function makeSlackUserId(): string {
-  return `slusr_${makeId(24)}`;
-}
-
-function makeChallangeId(): string {
-  return `chal_${makeId(24)}`;
-}
-
-function makeId(length: number): string {
-  let result = "";
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  return result;
-}
+export type DailyCheck = {
+  id: string;
+  challenge_id: string;
+  slack_user_id: string;
+  created_at: string;
+};
 
 export const generateCalendar = async (
   date: Date,
@@ -45,7 +32,7 @@ export const generateCalendar = async (
   const checkDates = dailyChecks.map((check) => {
     const realDate = new Date(check.created_at);
     const cutoffAdjustedDate = new Date(realDate);
-    cutoffAdjustedDate.setHours(0 - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
+    cutoffAdjustedDate.setHours(realDate.getHours() - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
     return getDate(cutoffAdjustedDate);
   });
 
@@ -67,13 +54,6 @@ export const generateCalendar = async (
   }
 
   return calendar.join("\n");
-};
-
-type DailyCheck = {
-  id: string;
-  challenge_id: string;
-  slack_user_id: string;
-  created_at: string;
 };
 
 const getDailyChecks = async ({

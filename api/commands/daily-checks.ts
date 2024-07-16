@@ -2,13 +2,20 @@ import { createClient } from "@supabase/supabase-js";
 
 import { endOfMonth, getDate, getDay, startOfMonth } from "date-fns";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { makeSlackUserId, makeChallangeId } from "../../libs/utils/id.utils";
+import type {
+  Challenge,
+  CheckType,
+  DailyCheck,
+} from "../../libs/types/supabase";
 import {
-  makeSlackUserId,
-  makeChallangeId,
-  makeDailyCheckId,
-} from "../../libs/utils/id.utils";
-import type { DailyCheck } from "../../libs/types/supabase";
+  getDailyChecks,
+  getTodayDailyChecksConsideringCutoff,
+  insertDailyCheck,
+} from "../../libs/services/daily-checks.service";
+import { getMonthPeriodForNow } from "../../libs/services/challenges.service";
 import { supabaseKey, supabaseUrl } from "../../libs/consts/supabase";
+import { isAlreadyUsedAllVacationsError } from "../../libs/consts/errors";
 
 export const generateCalendar = async (
   date: Date,
@@ -48,32 +55,6 @@ export const generateCalendar = async (
   return calendar.join("\n");
 };
 
-const getDailyChecks = async ({
-  challengeId,
-  userId,
-  start,
-  end,
-}: {
-  challengeId: string;
-  userId: string;
-  start: Date;
-  end: Date;
-}): Promise<DailyCheck[]> => {
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  const { data: dailyChecks, error } = await supabase
-    .from("daily_checks")
-    .select("*")
-    .eq("challenge_id", challengeId)
-    .eq("slack_user_id", userId)
-    .gte("created_at", start.toISOString())
-    .lte("created_at", end.toISOString());
-
-  if (error) {
-    throw new Error("Error fetching daily checks");
-  }
-  return dailyChecks as DailyCheck[];
-};
-
 // Function to get or create a Slack user
 const getOrCreateSlackUser = async (userId: string, userName: string) => {
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -109,7 +90,10 @@ const getOrCreateSlackUser = async (userId: string, userName: string) => {
 };
 
 // Function to get or create a challenge
-const getOrCreateChallenge = async (channelId: string, channelName: string) => {
+export const getOrCreateChallenge = async (
+  channelId: string,
+  channelName: string
+): Promise<Challenge> => {
   const supabase = createClient(supabaseUrl, supabaseKey);
   let { data: challenge } = await supabase
     .from("challenges")
@@ -140,65 +124,63 @@ const getOrCreateChallenge = async (channelId: string, channelName: string) => {
   }
 };
 
+export const insertDailyCheckIfNotExists = async ({
+  slackUser,
+  challenge,
+  checkType = "checkin",
+}: {
+  slackUser: any;
+  challenge: Challenge;
+  checkType?: CheckType;
+}) => {
+  const todayChecks = await getTodayDailyChecksConsideringCutoff({
+    challengeId: challenge.id,
+    slackUserId: slackUser.id,
+    cutoffHour: challenge.cutoff_hour,
+  });
+
+  if (todayChecks!.length === 0) {
+    // Check if no existing check found
+    await insertDailyCheck({
+      challengeId: challenge.id,
+      slackUserId: slackUser.id,
+      checkType,
+      vacationPerMonth: challenge.vacation_per_month,
+      cutoffHour: challenge.cutoff_hour,
+    });
+  }
+};
+
 async function createDailyCheckCalendar({
   slackUser,
   challenge,
 }: {
   slackUser: any;
-  challenge: any;
+  challenge: Challenge;
 }) {
-  const date = new Date();
-  const cutoffHour: number = challenge.cutoff_hour;
-
-  // Adjust the start and end of the current day based on the cutoff hour
-  const startOfDay = new Date(
-    date.setHours(0 + cutoffHour, 0, 0, 0)
-  ).toISOString();
-  const endOfDay = new Date(
-    date.setHours(23 + cutoffHour, 59, 59, 999)
-  ).toISOString();
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  const { data: existingChecks, error: checkError } = await supabase
-    .from("daily_checks")
-    .select("*")
-    .eq("challenge_id", challenge.id)
-    .eq("slack_user_id", slackUser.id)
-    .gte("created_at", startOfDay)
-    .lte("created_at", endOfDay);
-
-  if (checkError) {
-    throw new Error("Error fetching daily checks");
-  }
-
-  if (existingChecks!.length === 0) {
-    // Save user command to Supabase if no existing check found
-    const { error } = await supabase.from("daily_checks").insert([
-      {
-        id: makeDailyCheckId(),
-        challenge_id: challenge.id,
-        slack_user_id: slackUser.id,
-      },
-    ]);
-
-    if (error) {
-      throw new Error("Error creating daily check");
-    }
-  }
-
-  const start = startOfMonth(date);
-  start.setHours(0 + cutoffHour, 0, 0, 0);
-  const end = endOfMonth(date);
-  end.setHours(0 + cutoffHour, 0, 0, 0);
+  const { start, end } = getMonthPeriodForNow(challenge.cutoff_hour);
   const dailyChecks = await getDailyChecks({
     challengeId: challenge.id,
     userId: slackUser.id,
     start,
     end,
   });
-  const calendar = await generateCalendar(date, dailyChecks, cutoffHour);
+  const calendar = await generateCalendar(
+    new Date(),
+    dailyChecks,
+    challenge.cutoff_hour
+  );
   return calendar;
 }
+
+export type DailyCheckRequest = {
+  channel_id: string;
+  user_id: string;
+  user_name: string;
+  channel_name: string;
+  response_url: string;
+  checkType: CheckType;
+};
 
 export default async function (
   request: VercelRequest,
@@ -206,27 +188,51 @@ export default async function (
 ) {
   const body = request.body;
   console.log("daily-checks::", body);
-  const { channel_id, user_id, user_name, channel_name, response_url } = body;
+  const {
+    channel_id,
+    user_id,
+    user_name,
+    channel_name,
+    response_url,
+    checkType,
+  } = body as DailyCheckRequest;
 
-  const slackUser = await getOrCreateSlackUser(user_id, user_name);
-  const challenge = await getOrCreateChallenge(channel_id, channel_name);
-  const calendar = await createDailyCheckCalendar({
-    slackUser,
-    challenge,
-  });
+  try {
+    const slackUser = await getOrCreateSlackUser(user_id, user_name);
+    const challenge = await getOrCreateChallenge(channel_id, channel_name);
+    await insertDailyCheckIfNotExists({ slackUser, challenge, checkType });
+    const calendar = await createDailyCheckCalendar({
+      slackUser,
+      challenge,
+    });
 
-  console.log("daily-checks::calendar::", calendar);
+    console.log("daily-checks::calendar::", calendar);
 
-  const res = await fetch(response_url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      response_type: "in_channel",
-      text: calendar,
-    }),
-  });
+    const res = await fetch(response_url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        response_type: "in_channel",
+        text: calendar,
+      }),
+    });
 
-  console.log("daily-checks::res::", res);
+    response.status(200).send("Success!");
+  } catch (e: unknown) {
+    console.error("daily-checks::error::", e);
 
-  response.status(200).send("Success!");
+    if (isAlreadyUsedAllVacationsError(e)) {
+      await fetch(response_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          response_type: "in_channel",
+          text: "이미 이번 달의 휴가를 모두 사용했어요! :sob:",
+        }),
+      });
+      response.status(200).send("Success!");
+    } else {
+      response.status(500).send("Error!");
+    }
+  }
 }

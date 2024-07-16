@@ -1,6 +1,7 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { isValidSlackRequest } from "./_validate-slack";
 import packageJson from "../package.json"; // Import the package.json file
+import { DailyCheckRequest } from "./commands/daily-checks";
 
 export const maxDuration = 30;
 
@@ -78,7 +79,30 @@ export default async function (
           user_name,
           channel_name,
           response_url,
-        }),
+          checkType: "checkin",
+        } as DailyCheckRequest),
+      });
+
+      // Wait 1 second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      return response.status(200).send("ㅇㅈ봇이 달력을 보고있어요...");
+    } else if (body.command === "/ㅎㄱ") {
+      const { channel_id, user_id, user_name, channel_name, response_url } =
+        body;
+
+      // Below endpoint will handle daily checks
+      fetch(`${process.env.SERVER_BASE_URL!}/api/commands/daily-checks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel_id,
+          user_id,
+          user_name,
+          channel_name,
+          response_url,
+          checkType: "vacation",
+        } as DailyCheckRequest),
       });
 
       // Wait 1 second

@@ -5,6 +5,13 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.6] - 2024-07-17
+
+### Added
+
+- challenges table에 `vacation_per_month`가 추가되었습니다. 해당 일 수 만큼 휴가 사용이 가능합니다.
+- 휴가 사용은 '/ㅎㄱ'로 가능합니다.
+
 ## [1.0.5] - 2024-06-29
 
 ### Added

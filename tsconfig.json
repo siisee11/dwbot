@@ -10,5 +10,5 @@
     "outDir": "./dist"
   },
   "exclude": ["node_modules/**"],
-  "include": ["api"]
+  "include": ["api", "libs/const", "libs/utils"]
 }

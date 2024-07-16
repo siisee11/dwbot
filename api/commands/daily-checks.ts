@@ -6,17 +6,9 @@ import {
   makeSlackUserId,
   makeChallangeId,
   makeDailyCheckId,
-} from "../utils/id.utils";
-
-const supabaseUrl = "https://opljpbyvufnvjisogaai.supabase.co";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-export type DailyCheck = {
-  id: string;
-  challenge_id: string;
-  slack_user_id: string;
-  created_at: string;
-};
+} from "../../libs/utils/id.utils";
+import type { DailyCheck } from "../../libs/types/supabase";
+import { supabaseKey, supabaseUrl } from "../../libs/consts/supabase";
 
 export const generateCalendar = async (
   date: Date,

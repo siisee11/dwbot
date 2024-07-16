@@ -1,4 +1,5 @@
-import { DailyCheck, generateCalendar } from "./daily-checks";
+import { generateCalendar } from "./daily-checks";
+import type { DailyCheck } from "../../libs/types/supabase";
 
 describe("generateCalendar", () => {
   const date = new Date("2024-01-01");

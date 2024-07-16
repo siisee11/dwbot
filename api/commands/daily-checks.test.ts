@@ -63,5 +63,20 @@ describe("daily-checks", () => {
       expect(calendar).toEqual(expect.stringContaining("05"));
       expect(calendar).toEqual(expect.stringContaining(":white_check_mark:"));
     });
+
+    it("should print :palm_tree: on vacation", async () => {
+      const cutoffHour = 0;
+      dailyChecks.push({
+        id: "3",
+        challenge_id: "1",
+        slack_user_id: "1",
+        created_at: "2024-01-07T22:00:00",
+        check_type: "vacation",
+      });
+      const calendar = await generateCalendar(date, dailyChecks, cutoffHour);
+      expect(calendar).toEqual(expect.stringContaining("1월"));
+      expect(calendar).toEqual(expect.not.stringContaining("07"));
+      expect(calendar).toEqual(expect.stringContaining(":palm_tree:"));
+    });
   });
 });

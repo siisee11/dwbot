@@ -28,12 +28,23 @@ export const generateCalendar = async (
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
-  const checkDates = dailyChecks.map((check) => {
-    const realDate = new Date(check.created_at);
-    const cutoffAdjustedDate = new Date(realDate);
-    cutoffAdjustedDate.setHours(realDate.getHours() - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
-    return getDate(cutoffAdjustedDate);
-  });
+  const checkDates = dailyChecks
+    .filter((check) => check.check_type === "checkin")
+    .map((check) => {
+      const realDate = new Date(check.created_at);
+      const cutoffAdjustedDate = new Date(realDate);
+      cutoffAdjustedDate.setHours(realDate.getHours() - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
+      return getDate(cutoffAdjustedDate);
+    });
+
+  const vacationDates = dailyChecks
+    .filter((check) => check.check_type === "vacation")
+    .map((check) => {
+      const realDate = new Date(check.created_at);
+      const cutoffAdjustedDate = new Date(realDate);
+      cutoffAdjustedDate.setHours(realDate.getHours() - cutoffHour, 0, 0, 0); // if realDate is 09-01 23:00, and cutoffHoure is -4 than cutoffAdjustedDate will be 09-02 03:00
+      return getDate(cutoffAdjustedDate);
+    });
 
   let calendar = [`${month}월`, "일  월  화  수  목  금  토"];
   let week = Array(startDay).fill("---"); // Fill initial spaces for the first week
@@ -42,6 +53,8 @@ export const generateCalendar = async (
     const day = i.toString().padStart(2, "0");
     if (checkDates.includes(i)) {
       week.push(":white_check_mark:");
+    } else if (vacationDates.includes(i)) {
+      week.push(":palm_tree:");
     } else {
       week.push(day);
     }

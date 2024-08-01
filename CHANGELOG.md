@@ -5,6 +5,12 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.7] - 2024-08-01
+
+### Chore
+
+- 달력에 유저 네임이 추가되었습니다.
+
 ## [1.0.6] - 2024-07-17
 
 ### Added

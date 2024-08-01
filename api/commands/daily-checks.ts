@@ -7,6 +7,7 @@ import type {
   Challenge,
   CheckType,
   DailyCheck,
+  SlackUser,
 } from "../../libs/types/supabase";
 import {
   getDailyChecks,
@@ -69,7 +70,10 @@ export const generateCalendar = async (
 };
 
 // Function to get or create a Slack user
-const getOrCreateSlackUser = async (userId: string, userName: string) => {
+const getOrCreateSlackUser = async (
+  userId: string,
+  userName: string
+): Promise<SlackUser> => {
   const supabase = createClient(supabaseUrl, supabaseKey);
   let { data: user } = await supabase
     .from("slack_users")
@@ -183,6 +187,7 @@ async function createDailyCheckCalendar({
     dailyChecks,
     challenge.cutoff_hour
   );
+  calendar[0].concat(` (${slackUser.slack_user_name})`);
   return calendar;
 }
 

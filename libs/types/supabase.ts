@@ -16,3 +16,10 @@ export type Challenge = {
   cutoff_hour: number;
   vacation_per_month: number;
 };
+
+export type SlackUser = {
+  id: string; // slusr_....
+  created_at: string;
+  slack_user_id: string;
+  slack_user_name: string;
+};

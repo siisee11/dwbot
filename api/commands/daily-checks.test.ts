@@ -3,7 +3,7 @@ import type { DailyCheck } from "../../libs/types/supabase";
 
 describe("daily-checks", () => {
   describe("generateCalendar", () => {
-    const date = new Date("2024-01-01");
+    const date = new Date("2024-01-05");
     let dailyChecks: DailyCheck[] = [];
     beforeEach(() => {
       dailyChecks = [
@@ -65,7 +65,6 @@ describe("daily-checks", () => {
     });
 
     it("should print :palm_tree: on vacation", async () => {
-      const cutoffHour = 0;
       dailyChecks.push({
         id: "3",
         challenge_id: "1",
@@ -73,10 +72,26 @@ describe("daily-checks", () => {
         created_at: "2024-01-07T22:00:00",
         check_type: "vacation",
       });
-      const calendar = await generateCalendar(date, dailyChecks, cutoffHour);
+      const calendar = await generateCalendar(date, dailyChecks, 0);
       expect(calendar).toEqual(expect.stringContaining("1월"));
       expect(calendar).toEqual(expect.not.stringContaining("07"));
       expect(calendar).toEqual(expect.stringContaining(":palm_tree:"));
+    });
+
+    it("should print '연속 4일'", async () => {
+      dailyChecks.push({
+        id: "3",
+        challenge_id: "1",
+        slack_user_id: "1",
+        created_at: "2024-01-04T22:00:00",
+        check_type: "vacation",
+      });
+      const calendar = await generateCalendar(
+        new Date("2024-01-05"),
+        dailyChecks,
+        0
+      );
+      expect(calendar).toEqual(expect.stringContaining("연속 4일"));
     });
   });
 });

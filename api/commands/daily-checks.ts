@@ -19,13 +19,13 @@ import { supabaseKey, supabaseUrl } from "../../libs/consts/supabase";
 import { isAlreadyUsedAllVacationsError } from "../../libs/consts/errors";
 
 export const generateCalendar = async (
-  date: Date,
+  today: Date,
   dailyChecks: DailyCheck[],
   cutoffHour: number = 0
 ) => {
-  const month = date.getMonth() + 1;
-  const start = startOfMonth(date);
-  const end = endOfMonth(date);
+  const month = today.getMonth() + 1;
+  const start = startOfMonth(today);
+  const end = endOfMonth(today);
   const daysInMonth = end.getDate();
   const startDay = getDay(start);
 
@@ -49,22 +49,19 @@ export const generateCalendar = async (
 
   // Calculate streak
   let streak = 0;
-  let currentDate = new Date(end);
-  currentDate.setHours(0, 0, 0, 0);
+  let currentDate = new Date(today);
   while (
     checkDates.includes(currentDate.getDate()) ||
     vacationDates.includes(currentDate.getDate())
   ) {
-    if (checkDates.includes(currentDate.getDate())) {
-      streak++;
-    }
+    streak++;
     currentDate.setDate(currentDate.getDate() - 1);
     if (currentDate < start) break;
   }
 
   const streakEmoji = streak >= 7 ? "🔥" : "";
   let calendar = [
-    `${month}월 (연속 ${streak}일 ${streakEmoji})`,
+    `${month}월 (${streakEmoji}연속 ${streak}일)`,
     "일  월  화  수  목  금  토",
   ];
   let week = Array(startDay).fill("---"); // Fill initial spaces for the first week

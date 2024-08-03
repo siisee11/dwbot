@@ -5,6 +5,12 @@
 포맷은 다음 사이트의 포맷을 따릅니다. [Keep a Changelog](http://keepachangelog.com/)
 버저닝은 [Semantic Versioning](http://semver.org/)을 따릅니다.
 
+## [1.0.8] - 2024-08-03
+
+### Add
+
+- 연속 일수(Streak)가 추가되었습니다.
+
 ## [1.0.7] - 2024-08-01
 
 ### Chore

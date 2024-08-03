@@ -47,7 +47,26 @@ export const generateCalendar = async (
       return getDate(cutoffAdjustedDate);
     });
 
-  let calendar = [`${month}월`, "일  월  화  수  목  금  토"];
+  // Calculate streak
+  let streak = 0;
+  let currentDate = new Date(end);
+  currentDate.setHours(0, 0, 0, 0);
+  while (
+    checkDates.includes(currentDate.getDate()) ||
+    vacationDates.includes(currentDate.getDate())
+  ) {
+    if (checkDates.includes(currentDate.getDate())) {
+      streak++;
+    }
+    currentDate.setDate(currentDate.getDate() - 1);
+    if (currentDate < start) break;
+  }
+
+  const streakEmoji = streak >= 7 ? "🔥" : "";
+  let calendar = [
+    `${month}월 (연속 ${streak}일 ${streakEmoji})`,
+    "일  월  화  수  목  금  토",
+  ];
   let week = Array(startDay).fill("---"); // Fill initial spaces for the first week
 
   for (let i = 1; i <= daysInMonth; i++) {
@@ -172,7 +191,7 @@ async function createDailyCheckCalendar({
   slackUser,
   challenge,
 }: {
-  slackUser: any;
+  slackUser: SlackUser;
   challenge: Challenge;
 }) {
   const { start, end } = getMonthPeriodForNow(challenge.cutoff_hour);
